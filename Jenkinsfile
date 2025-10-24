@@ -22,11 +22,10 @@ pipeline {
     stages {
         stage('Build Java Application') {
             steps {
-                // FIX: Removed Docker container usage and switched to using the local Maven 
-                // installation named 'M3' configured in Manage Jenkins -> Global Tool Configuration.
-                tool name: 'M3', type: 'hudson.maven.MavenInstallation' 
-                
-                bat 'echo "Building Java application with local Maven M3..."'
+                // FIX: Removed the 'tool' step to bypass Jenkins Global Tool Configuration errors.
+                // The pipeline will now rely on the 'mvn' executable being available in the 
+                // Jenkins agent's system PATH.
+                bat 'echo "Building Java application with system Maven..."'
                 // Package the app, skipping tests
                 bat 'mvn clean package -DskipTests'
             }
