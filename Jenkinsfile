@@ -13,7 +13,7 @@ pipeline {
         
         // Configuration Variables (usually left as is)
         IMAGE_TAG = "${DOCKER_HUB_USER}/${IMAGE_NAME}:${env.BUILD_NUMBER}"
-        DOCKER_CRED_ID = 'dockerhub-creds' // Jenkins Credential ID for Docker Hub
+        DOCKER_CRED_ID = 'dockerhub_c' // Jenkins Credential ID for Docker Hub <-- UPDATED
         
         // Container Name (re-added as requested)
         CONTAINER_NAME = 'ise3' // <-- UPDATED to ise3
