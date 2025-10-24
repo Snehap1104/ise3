@@ -24,9 +24,9 @@ pipeline {
             steps {
                 // Use a temporary Docker container for Maven build to keep the agent clean
                 script {
-                    // CHANGED: Switched to a standard 'maven:3.8-jdk-17' tag and using 'bat'
-                    // for command execution to ensure compatibility with the Windows agent.
-                    docker.image('maven:3.8-jdk-17').inside {
+                    // CHANGED: Switched to the highly stable and modern 'maven:3-openjdk-21' tag.
+                    // This often resolves unexpected image pulling issues on Windows agents.
+                    docker.image('maven:3-openjdk-21').inside {
                         bat 'echo "Building Java application with Maven..."'
                         // Package the app, skipping tests
                         bat 'mvn clean package -DskipTests'
