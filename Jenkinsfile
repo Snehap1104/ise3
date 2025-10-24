@@ -24,9 +24,9 @@ pipeline {
             steps {
                 // Use a temporary Docker container for Maven build to keep the agent clean
                 script {
-                    // CHANGED: Switched to the highly stable and modern 'maven:3-openjdk-21' tag.
-                    // This often resolves unexpected image pulling issues on Windows agents.
-                    docker.image('maven:3-openjdk-21').inside {
+                    // FIX: Explicitly specify the Linux architecture ('linux/amd64') to resolve 
+                    // image pulling issues on the Windows Jenkins agent.
+                    docker.image('maven:3-openjdk-21', 'linux/amd64').inside {
                         bat 'echo "Building Java application with Maven..."'
                         // Package the app, skipping tests
                         bat 'mvn clean package -DskipTests'
