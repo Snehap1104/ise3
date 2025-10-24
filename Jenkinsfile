@@ -24,7 +24,8 @@ pipeline {
             steps {
                 // Use a temporary Docker container for Maven build to keep the agent clean
                 script {
-                    docker.image('maven:3.8.7-openjdk-17-slim').inside {
+                    // CHANGED: Using a more stable and currently available Maven/Java 17 tag.
+                    docker.image('maven:3.9.6-openjdk-17-slim').inside {
                         sh 'echo "Building Java application with Maven..."'
                         // Package the app, skipping tests
                         sh 'mvn clean package -DskipTests'
