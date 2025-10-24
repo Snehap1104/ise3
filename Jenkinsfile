@@ -22,16 +22,13 @@ pipeline {
     stages {
         stage('Build Java Application') {
             steps {
-                // Use a temporary Docker container for Maven build to keep the agent clean
-                script {
-                    // FIX: Explicitly specify the Linux architecture ('linux/amd64') to resolve 
-                    // image pulling issues on the Windows Jenkins agent.
-                    docker.image('maven:3-openjdk-21', 'linux/amd64').inside {
-                        bat 'echo "Building Java application with Maven..."'
-                        // Package the app, skipping tests
-                        bat 'mvn clean package -DskipTests'
-                    }
-                }
+                // FIX: Removed Docker container usage and switched to using the local Maven 
+                // installation named 'M3' configured in Manage Jenkins -> Global Tool Configuration.
+                tool name: 'M3', type: 'hudson.maven.MavenInstallation' 
+                
+                bat 'echo "Building Java application with local Maven M3..."'
+                // Package the app, skipping tests
+                bat 'mvn clean package -DskipTests'
             }
         }
 
