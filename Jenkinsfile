@@ -1,0 +1,67 @@
+// Declarative Pipeline for CI/CD of a Java/Docker application
+pipeline {
+    // Define the agent where the pipeline stages will run.
+    agent any
+
+    // Define environment variables
+    environment {
+        // !!! UPDATED PLACEHOLDERS BELOW !!!
+        // 1. Replace this with your Docker Hub username
+        DOCKER_HUB_USER = 'sneha2311' // <-- UPDATED to your username
+        // 2. Define the image name 
+        IMAGE_NAME = 'ise3'  // <-- UPDATED to your image name
+        
+        // Configuration Variables (usually left as is)
+        IMAGE_TAG = "${DOCKER_HUB_USER}/${IMAGE_NAME}:${env.BUILD_NUMBER}"
+        DOCKER_CRED_ID = 'dockerhub-creds' // Jenkins Credential ID for Docker Hub
+        
+        // Container Name (re-added as requested)
+        CONTAINER_NAME = 'ise3' // <-- UPDATED to ise3
+    }
+
+    stages {
+        stage('Build Java Application') {
+            steps {
+                // Use a temporary Docker container for Maven build to keep the agent clean
+                script {
+                    docker.image('maven:3.8.7-openjdk-17-slim').inside {
+                        sh 'echo "Building Java application with Maven..."'
+                        // Package the app, skipping tests
+                        sh 'mvn clean package -DskipTests'
+                    }
+                }
+            }
+        }
+
+        stage('Build & Push Docker Image') {
+            steps {
+                // Securely load and use Docker Hub credentials
+                withCredentials([usernamePassword(credentialsId: DOCKER_CRED_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                    sh 'echo "Logging into Docker Hub..."'
+                    sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
+
+                    sh 'echo "Building Docker Image: ${IMAGE_TAG}"'
+                    // Build the Docker image using the Dockerfile and tag it
+                    sh "docker build -t ${IMAGE_TAG} ."
+
+                    sh 'echo "Pushing Docker Image to Docker Hub..."'
+                    sh "docker push ${IMAGE_TAG}"
+                }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                sh 'echo "Removing local Docker image to save space..."'
+                // Optional: remove the locally built image
+                sh "docker rmi ${IMAGE_TAG} || true"
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline job finished.'
+        }
+    }
+}
