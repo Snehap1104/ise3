@@ -24,11 +24,12 @@ pipeline {
             steps {
                 // Use a temporary Docker container for Maven build to keep the agent clean
                 script {
-                    // CHANGED: Using a more stable and currently available Maven/Java 17 tag.
-                    docker.image('maven:3.9.6-openjdk-17-slim').inside {
-                        sh 'echo "Building Java application with Maven..."'
+                    // CHANGED: Switched to a standard 'maven:3.8-jdk-17' tag and using 'bat'
+                    // for command execution to ensure compatibility with the Windows agent.
+                    docker.image('maven:3.8-jdk-17').inside {
+                        bat 'echo "Building Java application with Maven..."'
                         // Package the app, skipping tests
-                        sh 'mvn clean package -DskipTests'
+                        bat 'mvn clean package -DskipTests'
                     }
                 }
             }
@@ -38,24 +39,25 @@ pipeline {
             steps {
                 // Securely load and use Docker Hub credentials
                 withCredentials([usernamePassword(credentialsId: DOCKER_CRED_ID, passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                    sh 'echo "Logging into Docker Hub..."'
-                    sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
+                    bat 'echo "Logging into Docker Hub..."'
+                    // NOTE: bat is used here as well for compatibility
+                    bat "echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin"
 
-                    sh 'echo "Building Docker Image: ${IMAGE_TAG}"'
+                    bat 'echo "Building Docker Image: %IMAGE_TAG%"'
                     // Build the Docker image using the Dockerfile and tag it
-                    sh "docker build -t ${IMAGE_TAG} ."
+                    bat "docker build -t %IMAGE_TAG% ."
 
-                    sh 'echo "Pushing Docker Image to Docker Hub..."'
-                    sh "docker push ${IMAGE_TAG}"
+                    bat 'echo "Pushing Docker Image to Docker Hub..."'
+                    bat "docker push %IMAGE_TAG%"
                 }
             }
         }
 
         stage('Cleanup') {
             steps {
-                sh 'echo "Removing local Docker image to save space..."'
+                bat 'echo "Removing local Docker image to save space..."'
                 // Optional: remove the locally built image
-                sh "docker rmi ${IMAGE_TAG} || true"
+                bat "docker rmi %IMAGE_TAG% || true"
             }
         }
     }
